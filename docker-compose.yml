@@ -1,0 +1,53 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: bankappmysql
+    environment:
+      MYSQL_ROOT_PASSWORD: test@123
+      MYSQL_DATABASE: bankAppDB
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - bankapp-net
+  ollama:
+     image: ollama/ollama
+     container_name: ollama
+     ports:
+      - "11434:11434"
+     volumes:
+      - ollama-data:/root/ollama
+     networks:
+      - bankapp-net
+  bankapp:
+    build: .
+    container_name: bankapp
+    ports:
+      - "8080:8080"
+    networks:
+      - bankapp-net
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: bankAppDB
+      MYSQL_USER: root
+      MYSQL_PASSWORD: test@123
+      Ollama_URL: https://ollama:11434
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+  ollama-data:
+
+networks:
+  bankapp-net:
+    driver: bridge
