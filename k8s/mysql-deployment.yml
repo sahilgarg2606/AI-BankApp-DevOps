@@ -31,6 +31,13 @@ spec:
               secretKeyRef: 
                   name: bankapp-secrets
                   key: MYSQL_ROOT_PASSWORD
+       resources:
+           requests: 
+               memory: "256Mi"
+               cpu: "250m"
+           limits:
+               memory: "512Mi"
+               cpu: "500m" 
        volumeMounts:
        - name: mysql-storage
          mountPath: /var/lib/mysql
@@ -39,6 +46,12 @@ spec:
              command: ["mysqladmin","ping","-h","localhost"]
            initialDelaySeconds: 15
            periodSeconds: 10
+       livenessProbe:
+           exec:
+               command: ["mysqladmin", "ping", "-h", "localhost"]
+           initialDelaySeconds: 30
+           periodSeconds: 10
+           failureThreshold: 5
      volumes:
        - name: mysql-storage
          persistentVolumeClaim:
